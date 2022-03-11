@@ -4,7 +4,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser'
-import {UserRoute,AuthRoute, NovelRoute} from './routers/index.js'
+import {UserRoute,AuthRoute, NovelRoute, CommentRoute} from './routers/index.js'
 
 dotenv.config()
 
@@ -39,3 +39,4 @@ app.get('/',(req,res)=>{
 app.use('/api',AuthRoute)
 app.use('/api/user',UserRoute)
 app.use('/api/novels',NovelRoute)
+app.use('/api/comment',CommentRoute)

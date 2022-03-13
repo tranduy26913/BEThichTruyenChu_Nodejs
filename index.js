@@ -18,8 +18,6 @@ app.use(bodyParser.urlencoded({extended:true,limit:'50mb'}))
 app.use(cors({ credentials: true, origin:true}));
 app.use(cookieParser());
 
-
-
 mongoose.connect(URI)
     .then(()=>{
         console.log('Connected')

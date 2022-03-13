@@ -35,12 +35,22 @@ export const AuthController = {
                 username: req.body.username,
                 password: hash,
                 email: req.body.email,
-                role: roles.map(item => item._id)
+                roles: roles.map(item => item._id)
             });
-            const temp = (await User.findOne({ username: req.body.username }))
+            let temp = (await User.findOne({ username: req.body.username }))
             if (temp) {
                 return res.status(400).json(ResponseDetail(400, { username: "Username đã tồn tại" }))
             }
+            temp = (await User.findOne({ email: req.body.email }))
+            if (temp) {
+                return res.status(400).json(ResponseDetail(400, { username: "Email đã tồn tại" }))
+            }
+            const activeCode = jwt.sign(
+                { email },
+                process.env.JWT_ACCESS_KEY,
+                { expiresIn: "15m" }
+            )
+            sendMail(email, "Kích hoạt tài khoản", process.env.CLIENT_URL + "active/" + activeCode)
             const user = await newUser.save();
             res.status(200).json(ResponseData(200, user))
 
@@ -167,7 +177,7 @@ export const AuthController = {
                         { expiresIn: "15m" }
                     )
                     console.log("active:" + activeCode);
-                    sendMail(email, "Kích hoạt tài khoản", process.env.CLIENT_URL + "api/active/" + activeCode)
+                    sendMail(email, "Kích hoạt tài khoản", process.env.CLIENT_URL + "active/" + activeCode)
                         .then(response => {
                             console.log(response)
                             return res.status(200).json(ResponseData(200, { message: "Đã gửi mail kích hoạt" }))

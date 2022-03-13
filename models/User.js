@@ -34,7 +34,7 @@ const schema = new mongoose.Schema({
     active:{
         type:Boolean,
         require: true,
-        default:true
+        default:false
     }
 },
     {timestamps:true}

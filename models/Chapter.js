@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { Novel } from './Novel'
+import { Novel } from './Novel.js'
 
 const schema =new  mongoose.Schema({
     chapnumber:{

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { Novel } from './Novel'
 
 const schema =new  mongoose.Schema({
     chapnumber:{
@@ -22,5 +23,14 @@ const schema =new  mongoose.Schema({
 },
 {timestamps:true}
 )
+schema.pre('save',next=>{
+    Novel.updateOne({_id:this.dautruyenId},{$inc:{sochap:1}})
+    next()
+})
 
+schema.pre('deleteOne', { query: true, document: false },next=>{
+    let id=this.getQuery()['_id'];
+    Novel.updateOne({_id:this.dautruyenId},{$inc:{sochap:-1}})
+    next()
+})
 export const Chapter = mongoose.model('Chapter', schema)

@@ -38,6 +38,10 @@ export const AuthController = {
                 roles: roles.map(item => item._id),
                 birthdate:new Date()
             });
+            let error = newUser.validateSync();
+            if(error)
+                return res.status(400).json(ResponseDetail(400, { 
+                    message: error.errors['email']?.message||error.errors['username']?.message }))
             let temp = (await User.findOne({ username: req.body.username }))
             if (temp) {
                 return res.status(400).json(ResponseDetail(400, { username: "Username đã tồn tại" }))
@@ -306,6 +310,33 @@ export const AuthController = {
         catch (error) {
             console.log(error)
             return res.status(500).json(ResponseDetail(500, { message: "Lỗi cập nhật quyền tài khoản" }))
+        }
+    },
+
+    checkUsername: async (req, res) => {
+        try {
+            const username = req.body.username;
+            const user = await User.findOne({ username:username })
+            if (user)
+                return res.status(200).json(ResponseData(200, {message:"Tên đăng nhập đã tồn tại trong hệ thống",valid: false}))
+            return res.status(200).json(ResponseData(200, {message:"Tên đăng nhập hợp lý",valid: true}))
+        }
+        catch (error) {
+            console.log(error)
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi",valid: false }))
+        }
+    },
+    checkEmail: async (req, res) => {
+        try {
+            const email = req.body.email;
+            const user = await User.findOne({ email:email })
+            if (user)
+                return res.status(200).json(ResponseData(200, {message:"Email đã tồn tại trong hệ thống",valid: false}))
+            return res.status(200).json(ResponseData(200, {message:"Email hợp lý",valid: true}))
+        }
+        catch (error) {
+            console.log(error)
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi",valid: false }))
         }
     }
 

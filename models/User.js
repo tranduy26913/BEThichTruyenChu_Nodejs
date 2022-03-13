@@ -1,20 +1,39 @@
 import  mongoose  from "mongoose";
 import {Comment} from './Comment.js';
+import { Novel } from "./Novel.js";
 import { Reading } from "./Reading.js";
 const schema = new mongoose.Schema({
     username: {
         type: String,
         require: true,
-        unique:true
+        unique:true,
+        validate:{
+            validator:item=>{
+                return item.length >= 6
+            },
+            message:"Tên đăng nhập phải dài hơn 5 kí tự"
+        }
     },
     password: {
         type:String,
-        require: true
+        require: true,
+        validate:{
+            validator:item=>{
+                return item.length >= 8
+            },
+            message:"Mật khẩu phải dài hơn 8 kí tự"
+        }
     },
     email: {
         type: String,
         require: true,
-        default: "Anonymous"
+        default: "Anonymous",
+        validate:{
+            validator:item=>{
+                return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/.test(item)
+            },
+            message:"Email không hợp lệ"
+        }
     },
     roles:[
         {
@@ -50,6 +69,7 @@ const schema = new mongoose.Schema({
     let id=this.getQuery()['_id'];
     Comment.deleteMany({userId: id}).exec();
     Reading.deleteMany({userId:id}).exec();
+    Novel.deleteMany({nguoidangtruyen:id}).exec();
     next();
 });
 

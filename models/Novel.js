@@ -34,7 +34,13 @@ const schema =new  mongoose.Schema({
     noidung:{
         type: String,
         require: true,
-        default:"Truyện đọc"
+        default:"Truyện đọc",
+        validate:{
+            validator:item=>{
+                return item.length > 10
+            },
+            message:"Nội dung phải dài hơn 10 kí tự"
+        }
     },
     soluongdanhgia:{
         type: Number,
@@ -48,7 +54,7 @@ const schema =new  mongoose.Schema({
     },
     url:{
         type: String,
-        require: true
+        require: true,
     },
     sochap:{
         type:Number,
@@ -58,5 +64,15 @@ const schema =new  mongoose.Schema({
 },
 {timestamps:true}
 )
+
+schema.pre('deleteOne', { query: true, document: false },function(next) {
+    // 'this' is the client being removed. Provide callbacks here if you want
+    // to be notified of the calls' result.
+    let id=this.getQuery()['_id'];
+    Comment.deleteMany({dautruyenId: id}).exec();
+    Reading.deleteMany({dautruyenId:id}).exec();
+    Chapter.deleteMany({dautruyenId:id}).exec();
+    next();
+});
 
 export const Novel = mongoose.model('Novel', schema)

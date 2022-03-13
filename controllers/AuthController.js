@@ -46,7 +46,7 @@ export const AuthController = {
                 return res.status(400).json(ResponseDetail(400, { username: "Email đã tồn tại" }))
             }
             const activeCode = jwt.sign(
-                { email },
+                { email:req.body.email },
                 process.env.JWT_ACCESS_KEY,
                 { expiresIn: "15m" }
             )

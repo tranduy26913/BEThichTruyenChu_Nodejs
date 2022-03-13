@@ -14,7 +14,7 @@ router.post('/auth/refreshtoken',AuthController.RefreshToken);
 
 router.post('/auth/reactive',AuthController.ReActive);
 
-router.post('/auth/active',AuthController.Active);
+router.get('/auth/active',AuthController.Active);
 
 router.put('/auth/activebyadmin',verifyTokenAdmin,AuthController.activeByAdmin);
 

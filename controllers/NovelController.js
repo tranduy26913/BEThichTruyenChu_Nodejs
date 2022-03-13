@@ -7,124 +7,153 @@ import { User } from '../models/User.js'
 import mongoose from "mongoose"
 
 export const NovelController = {
-    CreateNovel:async(req,res)=>{
+    CreateNovel: async (req, res) => {
         try {
-            const tentruyen =req.body.tentruyen
+            const tentruyen = req.body.tentruyen
             const url = req.body.url
             const hinhanh = req.body.hinhanh
-            const theloai =req.body.theloai
+            const theloai = req.body.theloai
             const tacgia = req.body.tacgia
             const nguoidangtruyen = new mongoose.Types.ObjectId(req.body.nguoidangtruyen)
-            const novel = await new Novel({tentruyen,url,hinhanh,theloai,tacgia,nguoidangtruyen})
+            const novel = await new Novel({ tentruyen, url, hinhanh, theloai, tacgia, nguoidangtruyen })
+            let error = novel.validateSync();
+            if(error)
+                return res.status(400).json(ResponseDetail(400, { 
+                    message: Object.values(error.errors)[0].message||'Lỗi' }))
+
             const response = await novel.save()
-            if(response){
+            if (response) {
                 return res.status(200).json(ResponseData(200, novel))
             }
             return res.status(400).json(ResponseDetail(400, { message: "Đăng truyện không thành công" }))
         } catch (error) {
             console.log(error)
-            return  res.status(500).json(ResponseDetail(500, { message: "Lỗi đăng truyện" }))
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi đăng truyện" }))
         }
     },
-    EditNovel:async(req,res)=>{
+    EditNovel: async (req, res) => {
         try {
-            const tentruyen =req.body.tentruyen
+            const tentruyen = req.body.tentruyen
             const url = req.body.url
             const hinhanh = req.body.hinhanh
-            const theloai =req.body.theloai
+            const theloai = req.body.theloai
             const tacgia = req.body.tacgia
             const id = new mongoose.Types.ObjectId(req.body.id)
-            const username= req.user.sub
-            const newUser =  await User.findOne({username:username})
-            if(!newUser)
-                return req.status(405).json(ResponseDetail(403,{message:"Bạn không có quyền sửa truyện của người khác"}))
-            
-            const novel = await Novel.findOne({_id:id,nguoidangtruyen:newUser.id})
-            if(!novel)
+            const username = req.user.sub
+            const newUser = await User.findOne({ username: username })
+            if (!newUser)
+                return req.status(405).json(ResponseDetail(403, { message: "Bạn không có quyền sửa truyện của người khác" }))
+
+            const novel = await Novel.findOne({ _id: id, nguoidangtruyen: newUser.id })
+            if (!novel)
                 return res.status(400).json(ResponseDetail(400, { message: "Bạn không có quyền sửa truyện của người khác" }))
-            const newNovel = await Novel.findByIdAndUpdate(id,{
-                tentruyen,url,hinhanh,theloai,tacgia
-            },{new:true})
-            if(newNovel)
-                return res.status(200).json(ResponseData(200, novel))            
+            const newNovel = await Novel.findByIdAndUpdate(id, {
+                tentruyen, url, hinhanh, theloai, tacgia
+            }, { new: true })
+            if (newNovel)
+                return res.status(200).json(ResponseData(200, novel))
             return res.status(400).json(ResponseDetail(400, { message: "Sửa truyện không thành công" }))
         } catch (error) {
             console.log(error)
-            return  res.status(500).json(ResponseDetail(500, { message: "Lỗi đăng truyện" }))
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi đăng truyện" }))
         }
     },
-    CreateChapter:async(req,res)=>{
+    DeleteNovelByUrl: async (req, res) => {
         try {
-            let tenchap =req.body.tenchap
-            const content = req.body.content
-            const url=req.body.url
-            
-            const novel = await Novel.findOne({url:url})
-            if(novel){
+            const url = req.query.url
 
-                const newestChap = await Chapter.find({dautruyenId:novel._id}).sort({chapnumber:-1}).limit(1)
+            const user = req.user
+            const newUser = await User.findOne({ username: user.sub })
+            if (!newUser)
+                return req.status(405).json(ResponseDetail(403, { message: "Bạn không có quyền xoá truyện của người khác" }))
+            const novel = await Novel.findOne({ url: url })
+            if (novel) {
+                const response =await Novel.deleteOne({_id:novel._id})
+                console.log(response)
+                    return res.status(200).json(ResponseDetail(200, { message: "Xoá truyện thành công" }))
+                
+                    //return res.status(400).json(ResponseDetail(400, { message: "Xoá truyện không thành công" }))
+                
+            }
+            else
+                return res.status(400).json(ResponseDetail(400, { message: "Không tìm thấy truyện" }))
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi sửa truyện" }))
+        }
+    },
+    CreateChapter: async (req, res) => {
+        try {
+            let tenchap = req.body.tenchap
+            const content = req.body.content
+            const url = req.body.url
+
+            const novel = await Novel.findOne({ url: url })
+            if (novel) {
+
+                const newestChap = await Chapter.find({ dautruyenId: novel._id }).sort({ chapnumber: -1 }).limit(1)
                 let chapnumber = 1
-                if(newestChap.length>0){
-                    chapnumber=newestChap[0].chapnumber +1
+                if (newestChap.length > 0) {
+                    chapnumber = newestChap[0].chapnumber + 1
                 }
                 console.log(novel._id)
                 tenchap = `Chương ${chapnumber}: ${tenchap}`
-                const chapter = await new Chapter({tenchap,dautruyenId:novel._id,content,chapnumber})
-                const response  = await chapter.save()
-                if(response) return res.status(200).json(ResponseData(200, response))
-                return res.status(400).json(ResponseDetail(400, {message:"Đăng chương không thành công"}))
+                const chapter = await new Chapter({ tenchap, dautruyenId: novel._id, content, chapnumber })
+                const response = await chapter.save()
+                if (response) return res.status(200).json(ResponseData(200, response))
+                return res.status(400).json(ResponseDetail(400, { message: "Đăng chương không thành công" }))
             }
             return res.status(400).json(ResponseDetail(400, { message: "Không tìm thấy truyện" }))
         } catch (error) {
             console.log(error)
-            return  res.status(500).json(ResponseDetail(500, { message: "Lỗi đăng truyện" }))
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi đăng truyện" }))
         }
     },
-    UpdateChapter:async(req,res)=>{
+    UpdateChapter: async (req, res) => {
         try {
-            let tenchap =req.body.tenchap
+            let tenchap = req.body.tenchap
             const content = req.body.content
-            const url=req.body.url
+            const url = req.body.url
             const chapnumber = req.body.chapnumber
             const user = req.user
-            const newUser = await User.findOne({username:user.sub})
-            if(!newUser)
-                return req.status(405).json(ResponseDetail(403,{message:"Bạn không có quyền sửa truyện của người khác"}))
-            const novel = await Novel.findOne({url:url})
-            if(novel){
+            const newUser = await User.findOne({ username: user.sub })
+            if (!newUser)
+                return req.status(405).json(ResponseDetail(403, { message: "Bạn không có quyền sửa truyện của người khác" }))
+            const novel = await Novel.findOne({ url: url })
+            if (novel) {
 
-                const newChap = await Chapter.findOneAndUpdate({chapnumber,dautruyenId:novel.id},{content,tenchap},{new:true})
-                if(newChap) return res.status(200).json(ResponseData(200, newChap))
-                return res.status(400).json(ResponseDetail(400, {message:"Sửa chương không thành công"}))
+                const newChap = await Chapter.findOneAndUpdate({ chapnumber, dautruyenId: novel.id }, { content, tenchap }, { new: true })
+                if (newChap) return res.status(200).json(ResponseData(200, newChap))
+                return res.status(400).json(ResponseDetail(400, { message: "Sửa chương không thành công" }))
             }
             return res.status(400).json(ResponseDetail(400, { message: "Không tìm thấy truyện" }))
         } catch (error) {
             console.log(error)
-            return  res.status(500).json(ResponseDetail(500, { message: "Lỗi sửa truyện" }))
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi sửa truyện" }))
         }
     },
-    DeleteChapter:async(req,res)=>{
+    DeleteChapter: async (req, res) => {
         try {
-            const url=req.query.url
+            const url = req.query.url
             const chapnumber = req.query.chapnumber
             const user = req.user
-            const newUser = await User.findOne({username:user.sub})
-            if(!newUser)
-                return req.status(405).json(ResponseDetail(403,{message:"Bạn không có quyền xoá truyện của người khác"}))
-            const novel = await Novel.findOne({url:url})
-            if(novel){
+            const newUser = await User.findOne({ username: user.sub })
+            if (!newUser)
+                return req.status(405).json(ResponseDetail(403, { message: "Bạn không có quyền xoá truyện của người khác" }))
+            const novel = await Novel.findOne({ url: url })
+            if (novel) {
 
-                const newChap = await Chapter.findOneAndDelete({chapnumber,dautruyenId:novel.id})
-                if(newChap) return res.status(200).json(ResponseData(200, {message:"Xoá chương thành công"}))
-                return res.status(400).json(ResponseDetail(400, {message:"Xoá chương không thành công"}))
+                const newChap = await Chapter.findOneAndDelete({ chapnumber, dautruyenId: novel.id })
+                if (newChap) return res.status(200).json(ResponseData(200, { message: "Xoá chương thành công" }))
+                return res.status(400).json(ResponseDetail(400, { message: "Xoá chương không thành công" }))
             }
             return res.status(400).json(ResponseDetail(400, { message: "Không tìm thấy truyện" }))
         } catch (error) {
             console.log(error)
-            return  res.status(500).json(ResponseDetail(500, { message: "Lỗi sửa truyện" }))
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi sửa truyện" }))
         }
     },
-    GetNovelsByUserId: async(req, res) => {
+    GetNovelsByUserId: async (req, res) => {
         try {
             const status = req.query.status || 'None'
             const sort = req.query.sort || 'tentruyen'
@@ -132,7 +161,7 @@ export const NovelController = {
             const size = req.query.size || 20
             const id = req.query.id
 
-            Novel.find({nguoidangtruyen:new mongoose.Types.ObjectId(id)}).limit(size).skip(size * page).sort({ tentruyen: -1 })
+            Novel.find({ nguoidangtruyen: new mongoose.Types.ObjectId(id) }).limit(size).skip(size * page).sort({ tentruyen: -1 })
                 .then(result => {
                     res.status(200).json(ResponseData(200, result))
                 }).
@@ -259,16 +288,16 @@ export const NovelController = {
                 .then(async (result) => {
                     const novel = await Novel.findOne({ url: url })
                     if (novel) {
-                        
+
                         let reading = await Reading.findOne({
                             dautruyenId: novel.id,
                             userId: result.id
                         })
-                        if(reading){
-                            reading.chapNumber=chapNumber
+                        if (reading) {
+                            reading.chapNumber = chapNumber
                         }
-                        else{
-                            reading=await new Reading({
+                        else {
+                            reading = await new Reading({
                                 dautruyenId: novel.id,
                                 userId: result.id,
                                 chapNumber
@@ -287,7 +316,7 @@ export const NovelController = {
             return res.status(500).json(ResponseDetail(500, { message: "Lỗi lấy thông tin chap" }))
         }
     },
-    GetReadings: async(req, res) => {
+    GetReadings: async (req, res) => {
         try {
             const token = req.headers.authorization?.split(" ")[1];
             const decode = jwt_decode(token)

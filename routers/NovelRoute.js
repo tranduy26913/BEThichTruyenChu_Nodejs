@@ -28,6 +28,6 @@ router.delete('/novel/chuong',verifyToken,NovelController.DeleteChapter)
 
 router.put('/novel/edit',verifyToken,NovelController.EditNovel)
 
-
+router.delete('/novel',verifyToken,NovelController.DeleteNovelByUrl)
 
 export default router;

@@ -23,14 +23,15 @@ const schema =new  mongoose.Schema({
 },
 {timestamps:true}
 )
-schema.pre('save',next=>{
-    Novel.updateOne({_id:this.dautruyenId},{$inc:{sochap:1}})
+schema.pre('save',async function(next){
+    console.log(this)
+    await Novel.updateOne({_id:this.dautruyenId},{$inc:{sochap:1}})
     next()
 })
 
-schema.pre('deleteOne', { query: true, document: false },next=>{
-    let id=this.getQuery()['_id'];
-    Novel.updateOne({_id:this.dautruyenId},{$inc:{sochap:-1}})
+schema.pre('findOneAndDelete', { query: true, document: false },async function(next){
+    let id=this.getQuery()['dautruyenId'];
+    await Novel.updateOne({_id:id},{$inc:{sochap:-1}})
     next()
 })
 export const Chapter = mongoose.model('Chapter', schema)

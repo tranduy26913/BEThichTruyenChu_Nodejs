@@ -63,13 +63,13 @@ const schema = new mongoose.Schema({
     {timestamps:true}
  );
 
- schema.pre('deleteOne', { query: true, document: false },function(next) {
+ schema.pre('deleteOne', { query: true, document: false },async function(next) {
     // 'this' is the client being removed. Provide callbacks here if you want
     // to be notified of the calls' result.
     let id=this.getQuery()['_id'];
-    Comment.deleteMany({userId: id}).exec();
-    Reading.deleteMany({userId:id}).exec();
-    Novel.deleteMany({nguoidangtruyen:id}).exec();
+    await Comment.deleteMany({userId: id})
+    await Reading.deleteMany({userId:id})
+    await Novel.deleteMany({nguoidangtruyen:id})
     next();
 });
 

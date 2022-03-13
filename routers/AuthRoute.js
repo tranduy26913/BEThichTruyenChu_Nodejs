@@ -22,4 +22,6 @@ router.put('/auth/inactivebyadmin',verifyTokenAdmin,AuthController.inactiveByAdm
 
 router.get('/auth/verifytoken',AuthController.verifyToken);
 
+router.post('/auth/forgetpassword',AuthController.Forgotpassword);
+
 export default router;

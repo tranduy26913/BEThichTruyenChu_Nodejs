@@ -1,6 +1,6 @@
 import express from 'express';
 import { AuthController } from '../controllers/AuthController.js';
-import {verifyToken} from "../controllers/middlewareController.js"
+import {verifyToken, verifyTokenAdmin} from "../controllers/middlewareController.js"
 
 const router = express.Router();
 
@@ -15,5 +15,11 @@ router.post('/auth/refreshtoken',AuthController.RefreshToken);
 router.post('/auth/reactive',AuthController.ReActive);
 
 router.post('/auth/active',AuthController.Active);
+
+router.put('/auth/activebyadmin',verifyTokenAdmin,AuthController.activeByAdmin);
+
+router.put('/auth/inactivebyadmin',verifyTokenAdmin,AuthController.inactiveByAdmin);
+
+router.get('/auth/verifytoken',AuthController.verifyToken);
 
 export default router;

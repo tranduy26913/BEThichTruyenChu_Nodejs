@@ -11,7 +11,6 @@ export const CommentController = {
             const content = req.body.content
             const url = req.body.url
             const username = jwt_decode(token).sub
-            console.log(username)
             const user = await User.findOne({ username: username })
             if (user) {
                 const novel = await Novel.findOne({ url: url })
@@ -27,6 +26,7 @@ export const CommentController = {
                         content,
                         image:user.image,
                         tenhienthi:user.tenhienthi,
+                        username:user.username,
                         createdAt:cmtResponse.createdAt
 
                     }
@@ -44,7 +44,6 @@ export const CommentController = {
     GetCommentsByUrl: async (req, res) => {
         try {
             const url = req.params.url
-            console.log(url)
             const novel = await Novel.findOne({ url: url })
             if (novel) {
                 let comments = await Comment.find({
@@ -54,6 +53,7 @@ export const CommentController = {
                     image:item.userId.image,
                     content:item.content,
                     id:item.id,
+                    username:item.userId.username,
                     createdAt:item.createdAt
                 }})
                 return res.status(200).json(ResponseData(200, comments))
@@ -64,6 +64,23 @@ export const CommentController = {
         } catch (error) {
             console.log(error)
             return res.status(500).json(ResponseDetail(200, { message: "Lỗi tạo comment" }))
+        }
+    },
+
+    DeleteComment: async (req, res) => {
+        try {
+            const novelId = req.body.id
+            console.log(novelId)
+            const count=await Comment.findByIdAndDelete(novelId)
+            if(count) 
+                return res.status(200).json(ResponseData(200, {message:"Xoá thành công"}))
+            else {
+                return res.status(400).json(ResponseDetail(400, { message: 'Xoá thất bại' }))
+            }
+
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json(ResponseDetail(200, { message: "Lỗi xoá comment" }))
         }
     }
 }

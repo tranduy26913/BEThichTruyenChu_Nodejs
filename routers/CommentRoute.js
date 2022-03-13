@@ -7,4 +7,6 @@ router.post('/create', verifyToken, CommentController.CreateComment);
 
 router.get('/getcomment/:url', CommentController.GetCommentsByUrl);
 
+router.post('/delete', verifyToken, CommentController.DeleteComment);
+
 export default router;

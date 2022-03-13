@@ -1,5 +1,5 @@
 import express from 'express';
-import {verifyToken} from "../controllers/middlewareController.js"
+import {verifyToken,verifyTokenAdmin} from "../controllers/middlewareController.js"
 import {AuthController} from "../controllers/AuthController.js"
 import { UserController } from '../controllers/UserController.js';
 
@@ -12,8 +12,12 @@ router.put('/info',verifyToken, UserController.updateUser);
 
 router.put('/info/password',verifyToken, UserController.updatePassword);
 
-router.get('/getusers',verifyToken,AuthController.LoadUsers);
+router.get('/getusers',verifyTokenAdmin,AuthController.LoadUsers);
 
 router.get('/chapter',CloneChapter)
+
+router.put('/updateroles',verifyTokenAdmin,UserController.updateRoles)
+
+router.delete('/',verifyTokenAdmin,UserController.deleteAccount)
 
 export default router;

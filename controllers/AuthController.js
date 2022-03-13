@@ -35,7 +35,8 @@ export const AuthController = {
                 username: req.body.username,
                 password: hash,
                 email: req.body.email,
-                roles: roles.map(item => item._id)
+                roles: roles.map(item => item._id),
+                birthdate:new Date()
             });
             let temp = (await User.findOne({ username: req.body.username }))
             if (temp) {

@@ -35,6 +35,10 @@ const schema = new mongoose.Schema({
         type:Boolean,
         require: true,
         default:false
+    },
+    birthdate:{
+        type:Date,
+        required:true,
     }
 },
     {timestamps:true}

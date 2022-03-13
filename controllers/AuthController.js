@@ -52,11 +52,11 @@ export const AuthController = {
             )
             sendMail(email, "Kích hoạt tài khoản", process.env.CLIENT_URL + "active/" + activeCode)
             const user = await newUser.save();
-            res.status(200).json(ResponseData(200, user))
+            return res.status(200).json(ResponseData(200, user))
 
         } catch (error) {
             console.log(error)
-            res.status(500).json(error)
+            res.status(500).json(ResponseDetail(400, { username: "Lỗi tạo tài khoản" }))
         }
 
     },

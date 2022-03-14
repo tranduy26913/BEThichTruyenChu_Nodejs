@@ -10,7 +10,13 @@ const schema =new  mongoose.Schema({
     content:{
         type: String,
         require: true,
-        default:""
+        default:"Nội dung chương",
+        validate:{
+            validator:item=>{
+                return item.length > 10
+            },
+            message:"Nội dung phải dài hơn 10 kí tự"
+        }
     },
     tenchap:{
         type: String,

@@ -17,9 +17,10 @@ export const NovelController = {
             const nguoidangtruyen = new mongoose.Types.ObjectId(req.body.nguoidangtruyen)
             const novel = await new Novel({ tentruyen, url, hinhanh, theloai, tacgia, nguoidangtruyen })
             let error = novel.validateSync();
-            if(error)
-                return res.status(400).json(ResponseDetail(400, { 
-                    message: Object.values(error.errors)[0].message||'Lỗi' }))
+            if (error)
+                return res.status(400).json(ResponseDetail(400, {
+                    message: Object.values(error.errors)[0].message || 'Lỗi'
+                }))
 
             const response = await novel.save()
             if (response) {
@@ -65,15 +66,17 @@ export const NovelController = {
             const user = req.user
             const newUser = await User.findOne({ username: user.sub })
             if (!newUser)
-                return req.status(405).json(ResponseDetail(403, { message: "Bạn không có quyền xoá truyện của người khác" }))
+                return res.status(405).json(ResponseDetail(403, { message: "Bạn không có quyền xoá truyện của người khác" }))
             const novel = await Novel.findOne({ url: url })
             if (novel) {
-                const response =await Novel.deleteOne({_id:novel._id})
-                console.log(response)
-                    return res.status(200).json(ResponseDetail(200, { message: "Xoá truyện thành công" }))
-                
-                    //return res.status(400).json(ResponseDetail(400, { message: "Xoá truyện không thành công" }))
-                
+                if (!novel.nguoidangtruyen.equals(newUser._id)){
+                    return res.status(403).json(ResponseDetail(403, { message: "Bạn không có quyền xoá truyện của người khác" }))
+                }
+                    const response = await Novel.deleteOne({ _id: novel._id })
+                if(response.deletedCount==1)
+                    return res.status(200).json(ResponseData(200, { message: "Xoá truyện thành công" }))
+                return res.status(400).json(ResponseDetail(400, { message: "Xoá truyện không thành công" }))
+
             }
             else
                 return res.status(400).json(ResponseDetail(400, { message: "Không tìm thấy truyện" }))
@@ -87,7 +90,8 @@ export const NovelController = {
             let tenchap = req.body.tenchap
             const content = req.body.content
             const url = req.body.url
-
+            if(content.length<=10)
+                return res.status(400).json(ResponseDetail(400, { message: "Nội dung phải dài hơn 10 kí tự" }))
             const novel = await Novel.findOne({ url: url })
             if (novel) {
 
@@ -96,7 +100,6 @@ export const NovelController = {
                 if (newestChap.length > 0) {
                     chapnumber = newestChap[0].chapnumber + 1
                 }
-                console.log(novel._id)
                 tenchap = `Chương ${chapnumber}: ${tenchap}`
                 const chapter = await new Chapter({ tenchap, dautruyenId: novel._id, content, chapnumber })
                 const response = await chapter.save()
@@ -116,12 +119,15 @@ export const NovelController = {
             const url = req.body.url
             const chapnumber = req.body.chapnumber
             const user = req.user
+            if(content.length<=10)
+                return res.status(400).json(ResponseDetail(400, { message: "Nội dung phải dài hơn 10 kí tự" }))
             const newUser = await User.findOne({ username: user.sub })
             if (!newUser)
                 return req.status(405).json(ResponseDetail(403, { message: "Bạn không có quyền sửa truyện của người khác" }))
             const novel = await Novel.findOne({ url: url })
             if (novel) {
-
+                if (!novel.nguoidangtruyen.equals(newUser._id))
+                    return res.status(403).json(ResponseDetail(403, { message: "Bạn không có quyền sửa truyện của người khác" }))
                 const newChap = await Chapter.findOneAndUpdate({ chapnumber, dautruyenId: novel.id }, { content, tenchap }, { new: true })
                 if (newChap) return res.status(200).json(ResponseData(200, newChap))
                 return res.status(400).json(ResponseDetail(400, { message: "Sửa chương không thành công" }))
@@ -142,7 +148,8 @@ export const NovelController = {
                 return req.status(405).json(ResponseDetail(403, { message: "Bạn không có quyền xoá truyện của người khác" }))
             const novel = await Novel.findOne({ url: url })
             if (novel) {
-
+                if (!novel.nguoidangtruyen.equals(newUser._id))
+                    return res.status(403).json(ResponseDetail(403, { message: "Bạn không có quyền xoá truyện của người khác" }))
                 const newChap = await Chapter.findOneAndDelete({ chapnumber, dautruyenId: novel.id })
                 if (newChap) return res.status(200).json(ResponseData(200, { message: "Xoá chương thành công" }))
                 return res.status(400).json(ResponseDetail(400, { message: "Xoá chương không thành công" }))

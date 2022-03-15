@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.get('/', NovelController.GetNovels);
 
+router.get('/search', NovelController.SearchNovelByName);
+
 router.get('/created', NovelController.GetNovelsByUserId);
 
 router.get('/novel/:url', NovelController.GetNovelsByUrl);

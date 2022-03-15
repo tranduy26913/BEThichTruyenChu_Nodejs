@@ -66,7 +66,7 @@ const schema =new  mongoose.Schema({
 },
 {timestamps:true}
 )
-
+schema.index({tentruyen:'text'})
 schema.pre('deleteOne',{ query: true, document: false }, async function(next) {
     // 'this' is the client being removed. Provide callbacks here if you want
     // to be notified of the calls' result.

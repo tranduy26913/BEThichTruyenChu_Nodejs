@@ -85,6 +85,23 @@ export const NovelController = {
             return res.status(500).json(ResponseDetail(500, { message: "Lỗi sửa truyện" }))
         }
     },
+    SearchNovelByName: async (req,res)=>{
+        try {
+            let search = req.query.search
+            if(!search){
+                return res.status(500).json(ResponseDetail(500, { message: "Thiếu field" }))
+            }
+            search = search.normalize("NFD").toLowerCase().replace(/[\u0300-\u036f]/g, "").replace(/[\u0300-\u036f]/g, "").split(' ').filter(i=>i!=='').join(' ')
+            console.log(search)
+            const novels = await Novel.find({$text:{$search:search}})
+            if(novels){
+                return res.status(200).json(ResponseData(200,novels))
+            }
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi tìm truyện" }))
+        }
+    },
     CreateChapter: async (req, res) => {
         try {
             let tenchap = req.body.tenchap

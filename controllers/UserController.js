@@ -73,39 +73,7 @@ export const UserController ={
             return res.status(500).json(ResponseDetail(500,{message:"Lỗi cập nhật tài khoản"}))
         }
     },
-    updateRoles:async(req,res)=>{
-        try{
-            const rolesRequest = req.body.roles;
-            const id = req.body.id;
-            console.log(id)
-             
-            let roles=[]
-            
-            const getRoles =async(list)=>{
-                const roles=[]
-                for(let i=0;i<list.length;i++){
-                    let role = await Role.findOne({name:list[i]})
-                roles.push(role)
-                }
-                return roles
-            }
-            roles = await getRoles(rolesRequest)
-            if(id){
-                console.log(roles.map(item=>item.id))
-                const newUser=await User.updateOne({_id:id},{roles:roles.map(item=>item.id)},{new:true})
-                if(newUser){
-                    return res.status(200).json(ResponseData(200,{message:"Cập nhật quyền thành công"}))
-                }
-                else
-                    return res.status(400).json(ResponseDetail(400,{message:"Cập nhật không thành công"}))
-            }else
-                return res.status(400).json(ResponseDetail(400,{message:"Không có username"}))
-        }
-        catch (error) {
-            console.log(error)
-            return res.status(500).json(ResponseDetail(500,{message:"Lỗi cập nhật quyền tài khoản"}))
-        }
-    },
+    
     deleteAccount:async(req,res)=>{
         try{
             const id=req.query.id;

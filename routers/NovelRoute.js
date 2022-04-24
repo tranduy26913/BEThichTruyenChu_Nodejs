@@ -4,6 +4,8 @@ import {NovelController} from '../controllers/NovelController.js';
 
 const router = express.Router();
 
+router.get('/novel/newupdate',NovelController.GetNewestChapter);
+
 router.get('/', NovelController.GetNovels);
 
 router.get('/search', NovelController.SearchNovelByName);
@@ -31,5 +33,7 @@ router.delete('/novel/chuong',verifyToken,NovelController.DeleteChapter)
 router.put('/novel/edit',verifyToken,NovelController.EditNovel)
 
 router.delete('/novel',verifyToken,NovelController.DeleteNovelByUrl)
+
+router.get('/readingsdefault',NovelController.GetReadingsDefault)
 
 export default router;

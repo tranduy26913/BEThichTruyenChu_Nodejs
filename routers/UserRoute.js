@@ -16,7 +16,7 @@ router.get('/getusers',verifyTokenAdmin,AuthController.LoadUsers);
 
 router.get('/chapter',CloneChapter)
 
-router.put('/updateroles',verifyTokenAdmin,UserController.updateRoles)
+
 
 router.delete('/',verifyTokenAdmin,UserController.deleteAccount)
 

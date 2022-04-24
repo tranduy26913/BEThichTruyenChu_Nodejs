@@ -9,7 +9,7 @@ export const CommentController = {
         try {
             const token = req.headers.authorization.split(" ")[1];
             const content = req.body.content
-            const url = req.body.url
+            const url = req.body.urltruyen
             const username = jwt_decode(token).sub
             const user = await User.findOne({ username: username })
             if (user) {

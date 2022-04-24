@@ -284,34 +284,6 @@ export const AuthController = {
         }
     },
 
-    activeByAdmin: async (req, res) => {
-        try {
-            const id = req.body.id;
-            const updateUser = await User.findByIdAndUpdate({ _id: id }, { active: true }, { new: true }).populate('roles')
-
-            if (updateUser)
-                return res.status(200).json(ResponseData(200, updateUser))
-            return res.status(400).json(ResponseDetail(400, {message:"Kích hoạt thất bại"}))
-        }
-        catch (error) {
-            console.log(error)
-            return res.status(500).json(ResponseDetail(500, { message: "Lỗi cập nhật quyền tài khoản" }))
-        }
-    },
-    inactiveByAdmin: async (req, res) => {
-        try {
-            const id = req.body.id;
-            const userId=new mongoose.Types.ObjectId(id)
-            const updateUser = await User.findByIdAndUpdate({ _id: userId }, { active: false }, { new: true }).populate('roles')
-            if (updateUser)
-                return res.status(200).json(ResponseData(200, updateUser))
-            return res.status(400).json(ResponseDetail(400,  {message:"Khoá thất bại"}))
-        }
-        catch (error) {
-            console.log(error)
-            return res.status(500).json(ResponseDetail(500, { message: "Lỗi cập nhật quyền tài khoản" }))
-        }
-    },
 
     checkUsername: async (req, res) => {
         try {

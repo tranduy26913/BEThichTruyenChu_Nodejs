@@ -8,17 +8,11 @@ router.post('/auth/register', AuthController.RegisterUser);
 
 router.post('/auth/login', AuthController.LoginUser);
 
-router.get('/getusers',verifyToken,AuthController.LoadUsers);
-
 router.post('/auth/refreshtoken',AuthController.RefreshToken);
 
 router.post('/auth/reactive',AuthController.ReActive);
 
 router.get('/auth/active',AuthController.Active);
-
-router.put('/auth/activebyadmin',verifyTokenAdmin,AuthController.activeByAdmin);
-
-router.put('/auth/inactivebyadmin',verifyTokenAdmin,AuthController.inactiveByAdmin);
 
 router.get('/auth/verifytoken',AuthController.verifyToken);
 

@@ -69,11 +69,11 @@ export const NovelController = {
                 return res.status(405).json(ResponseDetail(403, { message: "Bạn không có quyền xoá truyện của người khác" }))
             const novel = await Novel.findOne({ url: url })
             if (novel) {
-                if (!novel.nguoidangtruyen.equals(newUser._id)){
+                if (!novel.nguoidangtruyen.equals(newUser._id)) {
                     return res.status(403).json(ResponseDetail(403, { message: "Bạn không có quyền xoá truyện của người khác" }))
                 }
-                    const response = await Novel.deleteOne({ _id: novel._id })
-                if(response.deletedCount==1)
+                const response = await Novel.deleteOne({ _id: novel._id })
+                if (response.deletedCount == 1)
                     return res.status(200).json(ResponseData(200, { message: "Xoá truyện thành công" }))
                 return res.status(400).json(ResponseDetail(400, { message: "Xoá truyện không thành công" }))
 
@@ -85,17 +85,17 @@ export const NovelController = {
             return res.status(500).json(ResponseDetail(500, { message: "Lỗi sửa truyện" }))
         }
     },
-    SearchNovelByName: async (req,res)=>{
+    SearchNovelByName: async (req, res) => {
         try {
             let search = req.query.search
-            if(!search){
+            if (!search) {
                 return res.status(500).json(ResponseDetail(500, { message: "Thiếu field" }))
             }
-            search = search.normalize("NFD").toLowerCase().replace(/[\u0300-\u036f]/g, "").replace(/[\u0300-\u036f]/g, "").split(' ').filter(i=>i!=='').join(' ')
+            search = search.normalize("NFD").toLowerCase().replace(/[\u0300-\u036f]/g, "").replace(/[\u0300-\u036f]/g, "").split(' ').filter(i => i !== '').join(' ')
             console.log(search)
-            const novels = await Novel.find({$text:{$search:search}})
-            if(novels){
-                return res.status(200).json(ResponseData(200,novels))
+            const novels = await Novel.find({ $text: { $search: search } })
+            if (novels) {
+                return res.status(200).json(ResponseData(200, novels))
             }
         } catch (error) {
             console.log(error)
@@ -107,7 +107,7 @@ export const NovelController = {
             let tenchap = req.body.tenchap
             const content = req.body.content
             const url = req.body.url
-            if(content.length<=10)
+            if (content.length <= 10)
                 return res.status(400).json(ResponseDetail(400, { message: "Nội dung phải dài hơn 10 kí tự" }))
             const novel = await Novel.findOne({ url: url })
             if (novel) {
@@ -136,7 +136,7 @@ export const NovelController = {
             const url = req.body.url
             const chapnumber = req.body.chapnumber
             const user = req.user
-            if(content.length<=10)
+            if (content.length <= 10)
                 return res.status(400).json(ResponseDetail(400, { message: "Nội dung phải dài hơn 10 kí tự" }))
             const newUser = await User.findOne({ username: user.sub })
             if (!newUser)
@@ -203,10 +203,10 @@ export const NovelController = {
         try {
             const status = req.query.status || 'None'
             const sort = req.query.sort || 'tentruyen'
-            const page = req.query.page || 0
+            const page = req.query.page - 1 || 0
             const size = req.query.size || 6
 
-            Novel.find().limit(size).skip(size * page).sort({ tentruyen: -1 })
+            Novel.find().limit(size).skip(size * (page)).sort({ tentruyen: -1 })
                 .then(result => {
                     res.status(200).json(ResponseData(200, result))
                 }).
@@ -225,6 +225,7 @@ export const NovelController = {
             const url = req.params.url;
             Novel.findOne({ url: url }).then(
                 result => {
+
                     res.status(200).json(ResponseData(200, result))
                 }
             ).
@@ -243,12 +244,37 @@ export const NovelController = {
             const chapNumber = req.params.chapNumber;
             const url = req.params.url
 
+            const token = req.headers.authorization?.split(" ")[1];
+            var username;
+            if (token) {
+                username = jwt_decode(token).sub
+            }
+
             const novel = await Novel.findOne({ url: url })
             if (novel) {
                 Chapter.findOne({ dautruyenId: novel.id, chapnumber: chapNumber })
                     .then(
-                        result => {
-                            console.log(result)
+                        async(result) => {
+                            if (username) {
+                                const user = await User.findOne({ username })
+                                if (user) {
+                                    let reading = await Reading.findOne({
+                                        dautruyenId: novel.id,
+                                        userId: user.id
+                                    })
+                                    if (reading) {
+                                        reading.chapNumber = chapNumber
+                                    }
+                                    else {
+                                        reading = await new Reading({
+                                            dautruyenId: novel.id,
+                                            userId: user.id,
+                                            chapNumber
+                                        })
+                                    }
+                                    await reading.save()
+                                }
+                            }
                             return res.status(200).json(ResponseData(200, result))
                         }
                     ).
@@ -275,7 +301,7 @@ export const NovelController = {
             if (novel) {
                 Chapter.find({ dautruyenId: novel.id })
                     .limit(size)
-                    .skip(page * size)
+                    .skip((page) * size)
                     .sort({ chapnumber: 1 })
                     .select({ chapnumber: 1, tenchap: 1 }).then(
                         result => {
@@ -351,8 +377,19 @@ export const NovelController = {
             const username = decode.sub;
             const user = await User.findOne({ username: username })
             if (user) {
-                const readings = await Reading.find({ userId: user.id }).populate('dautruyenId')
-
+                let readings = await Reading.find({ userId: user._id }).populate('dautruyenId').populate("userId")
+                
+                readings =await Promise.all(readings.map(async(item)=>{
+                    let sochap = await Chapter.countDocuments({dautruyenId:item.dautruyenId.id})
+                    return {
+                        tentruyen:item.dautruyenId.tentruyen,
+                        hinhanh:item.dautruyenId.hinhanh,
+                        chapnumber:item.chapNumber,
+                        url:item.dautruyenId.url,
+                        sochap
+                    }
+                })) 
+                
                 return res.status(200).json(ResponseData(200, readings))
             } else {
                 return res.status(500).json(ResponseDetail(500, { message: "Lỗi tìm tài khoản" }))
@@ -361,6 +398,54 @@ export const NovelController = {
             console.log(error)
             return res.status(500).json(ResponseDetail(500, { message: "Lỗi lấy thông tin chap" }))
         }
+    },
+
+    GetNewestChapter: async (req, res) => {
+        try {
+            const page = req.query.page || 0
+            const size = req.query.size || 10
+            let chaps = await Chapter.find().populate('dautruyenId').limit(size).sort({ updateAt: -1 })
+            chaps = chaps.map(item => {
+                return {
+                    theloai: item.dautruyenId.theloai
+                    , tentruyen: item.dautruyenId.tentruyen,
+                    tenchap: item.tenchap, tacgia: item.dautruyenId.tacgia,
+                    nguoidangtruyen: item.dautruyenId.nguoidangtruyen?.tenhienthi,
+                    updateAt: item.updateAt,
+                    url: item.dautruyenId.url,
+                    chapnumber: item.chapnumber
+                }
+            })
+            if (chaps) {
+                return res.status(200).json(ResponseData(200, chaps))
+            }
+            return res.status(200).json(ResponseData(200, []))
+        }
+        catch (err) {
+            console.log(err)
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi lấy thông tin chap" }))
+        }
+    },
+
+    GetReadingsDefault: async (req, res) => {
+        try {
+            const page = req.query.page || 0
+            const size = req.query.size || 10
+            var novelReading = await Novel.find().limit(size)
+            novelReading = await Promise.all(novelReading.map(async (item) => {
+                let sochap = await Chapter.countDocuments({ dautruyenId: item._id })
+                return { tentruyen: item.tentruyen, hinhanh: item.hinhanh, chapnumber: 1, url: item.url, sochap }
+            }))
+            if (novelReading) {
+                return res.status(200).json(ResponseData(200, novelReading))
+            }
+            return res.status(200).json(ResponseData(200, []))
+        }
+        catch (err) {
+            console.log(err)
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi lấy thông tin chap" }))
+        }
     }
+
 
 }

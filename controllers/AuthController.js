@@ -287,7 +287,7 @@ export const AuthController = {
 
     checkUsername: async (req, res) => {
         try {
-            const username = req.body.username;
+            const username = req.query.username;
             const user = await User.findOne({ username:username })
             if (user)
                 return res.status(200).json(ResponseData(200, {message:"Tên đăng nhập đã tồn tại trong hệ thống",valid: false}))
@@ -300,7 +300,7 @@ export const AuthController = {
     },
     checkEmail: async (req, res) => {
         try {
-            const email = req.body.email;
+            const email = req.query.email;
             const user = await User.findOne({ email:email })
             if (user)
                 return res.status(200).json(ResponseData(200, {message:"Email đã tồn tại trong hệ thống",valid: false}))

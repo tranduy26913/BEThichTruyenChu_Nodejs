@@ -18,8 +18,8 @@ router.get('/auth/verifytoken',AuthController.verifyToken);
 
 router.post('/auth/forgetpassword',AuthController.Forgotpassword);
 
-router.post('/auth/checkusername',AuthController.checkUsername);
+router.get('/auth/checkusername',AuthController.checkUsername);
 
-router.post('/auth/checkemail',AuthController.checkEmail);
+router.get('/auth/checkemail',AuthController.checkEmail);
 
 export default router;

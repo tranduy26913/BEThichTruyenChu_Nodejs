@@ -3,9 +3,6 @@ import { User } from "../models/User.js";
 import jwt from "jsonwebtoken";
 import { ResponseData, ResponseDetail } from "../services/ResponseJSON.js";
 import { Role } from "../models/Role.js";
-import { sendMail } from "../services/EmailService.js";
-import mongoose from "mongoose";
-import generator from "generate-password"
 
 export const AdminController = {
 

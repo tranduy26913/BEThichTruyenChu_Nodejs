@@ -56,7 +56,7 @@ export const AuthController = {
                 process.env.JWT_ACCESS_KEY,
                 { expiresIn: "15m" }
             )
-            sendMail(req.body.email, "Kích hoạt tài khoản", process.env.CLIENT_URL + "active/" + activeCode)
+            await SendMail(req.body.email, "Kích hoạt tài khoản", process.env.CLIENT_URL + "active/" + activeCode)
             const user = await newUser.save();
             return res.status(200).json(ResponseData(200, user))
 

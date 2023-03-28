@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import { Novel } from './Novel.js'
 
 const schema =new  mongoose.Schema({
-    chapnumber:{
+    chapternumber:{
         type: Number,
         require: true,
         default:0
@@ -18,26 +18,34 @@ const schema =new  mongoose.Schema({
             message:"Nội dung phải dài hơn 10 kí tự"
         }
     },
-    tenchap:{
+    chaptername:{
         type: String,
         require: true,
     },
-    dautruyenId:{
+    novelId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Novel"
     },
+    isLock: {
+        type: Boolean,
+        default: false
+    },
+    price: {
+        type:Number,
+        default:200
+    }
 },
 {timestamps:true}
 )
 schema.pre('save',async function(next){
     console.log(this)
-    await Novel.updateOne({_id:this.dautruyenId},{$inc:{sochap:1}})
+    await Novel.updateOne({_id:this.dautruyenId},{$inc:{chapternumber:1}})
     next()
 })
 
 schema.pre('findOneAndDelete', { query: true, document: false },async function(next){
-    let id=this.getQuery()['dautruyenId'];
-    await Novel.updateOne({_id:id},{$inc:{sochap:-1}})
+    let id=this.getQuery()['novelId'];
+    await Novel.updateOne({_id:id},{$inc:{chapternumber:-1}})
     next()
 })
 export const Chapter = mongoose.model('Chapter', schema)

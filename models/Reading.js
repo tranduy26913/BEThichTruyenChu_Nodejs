@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const scheme = new mongoose.Schema({
-    dautruyenId:{
+    novelId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Novel",
         required:true
@@ -11,7 +11,7 @@ const scheme = new mongoose.Schema({
         ref: "User",
         required:true
     },
-    chapNumber:{
+    chapternumber:{
         type: Number,
         required:true
     }

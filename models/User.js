@@ -41,14 +41,14 @@ const schema = new mongoose.Schema({
           ref: "Role"
         }
       ],
-    tenhienthi:{
+    nickname:{
         type: String,
         require: true,
         default: "Anonymous"
     },
     image:{
         type:String,
-
+        default:"https://1.bp.blogspot.com/-CV8fOXMMw60/YZ-UJ4X9sAI/AAAAAAAACMc/2Svet97exjgNdJ9CeTKUU3OuA-mnCQEzwCLcBGAsYHQ/s595/3a.jpg"
     },
     active:{
         type:Boolean,
@@ -58,6 +58,15 @@ const schema = new mongoose.Schema({
     birthdate:{
         type:Date,
         required:true,
+    },
+    balance: {
+        type:Number,
+        default:0,
+        require: true
+    },
+    isDeleted:{
+        type:Boolean,
+        default:false,
     }
 },
     {timestamps:true}
@@ -66,10 +75,11 @@ const schema = new mongoose.Schema({
  schema.pre('deleteOne', { query: true, document: false },async function(next) {
     // 'this' is the client being removed. Provide callbacks here if you want
     // to be notified of the calls' result.
-    let id=this.getQuery()['_id'];
+    let id = this.getQuery()['_id'];
     await Comment.deleteMany({userId: id})
-    await Reading.deleteMany({userId:id})
-    await Novel.deleteMany({nguoidangtruyen:id})
+    await Reading.deleteMany({userId: id})
+    await Novel.deleteMany({uploader: id})
+    await Rating.deleteMany({userId: id});
     next();
 });
 

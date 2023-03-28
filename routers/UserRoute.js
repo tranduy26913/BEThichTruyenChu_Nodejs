@@ -16,6 +16,8 @@ router.get('/getusers',verifyTokenAdmin,AuthController.LoadUsers);
 
 router.get('/chapter',CloneChapter)
 
+router.post('/info-balance',UserController.getInfoWithBalance)
+
 
 
 router.delete('/',verifyTokenAdmin,UserController.deleteAccount)

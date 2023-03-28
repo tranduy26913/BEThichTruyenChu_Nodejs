@@ -11,10 +11,27 @@ export const UserController ={
             const decodeToken = jwt_decode(token)
             const username = decodeToken.sub
             const user =await User.findOne({username:username}).populate("roles");
-            const {password,...rest}=user._doc;
-            const data ={...rest}
+            const {password,_id:id,...rest}=user._doc;
+            const data ={id,...rest}
 
             return res.status(200).json(ResponseData(200,{userInfo:data}))
+
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json(ResponseDetail(500,{message:"Lỗi xác thực"}))
+        }
+    },
+    getInfoWithBalance:async(req,res)=>{
+        try {
+            const token = req.headers.authorization?.split(" ")[1];
+            const decodeToken = jwt_decode(token)
+            const username = decodeToken.sub
+            const user =await User.findOne({username:username}).populate("roles");
+            const {balance }=user._doc;
+
+            return res.status(200).json(ResponseData(200,{
+                balance
+            }))
 
         } catch (error) {
             console.log(error)
@@ -30,7 +47,7 @@ export const UserController ={
             const data = {
                 birthdate:req.body.birthdate,
                 image:req.body.image,
-                tenhienthi:req.body.tenhienthi
+                nickname:req.body.tenhienthi
             }
 
             const newUser= await User.findOneAndUpdate({username:username},data,{new:true})

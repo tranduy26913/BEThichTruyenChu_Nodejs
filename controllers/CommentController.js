@@ -16,16 +16,16 @@ export const CommentController = {
                 const novel = await Novel.findOne({ url: url })
                 if (novel) {
                     const comment = await new Comment({
-                        dautruyenId: novel.id,
+                        novelId: novel.id,
                         userId: user.id,
-                        content
+                        content: content
                     })
                     const cmtResponse = await comment.save()
                     const data={
                         id:cmtResponse.id,
                         content,
                         image:user.image,
-                        tenhienthi:user.tenhienthi,
+                        nickname:user.nickname,
                         username:user.username,
                         createdAt:cmtResponse.createdAt
 
@@ -47,9 +47,9 @@ export const CommentController = {
             const novel = await Novel.findOne({ url: url })
             if (novel) {
                 let comments = await Comment.find({
-                    dautruyenId:novel.id}).sort({createdAt:-1}).populate('userId')
+                    novelId: novel._id}).sort({createdAt:-1}).populate('userId')
                 comments=comments.map(item=>{return {
-                    tenhienthi:item.userId.tenhienthi,
+                    nickname:item.userId.nickname,
                     image:item.userId.image,
                     content:item.content,
                     id:item.id,
@@ -69,15 +69,13 @@ export const CommentController = {
 
     DeleteComment: async (req, res) => {
         try {
-            const novelId = req.body.id
-            console.log(novelId)
-            const count=await Comment.findByIdAndDelete(novelId)
+            const commentId = req.query.id
+            const count = await Comment.findByIdAndDelete(commentId)
             if(count) 
                 return res.status(200).json(ResponseData(200, {message:"Xoá thành công"}))
             else {
                 return res.status(400).json(ResponseDetail(400, { message: 'Xoá thất bại' }))
             }
-
         } catch (error) {
             console.log(error)
             return res.status(500).json(ResponseDetail(200, { message: "Lỗi xoá comment" }))

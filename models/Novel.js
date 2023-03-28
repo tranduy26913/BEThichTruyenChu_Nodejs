@@ -2,38 +2,39 @@ import mongoose from 'mongoose'
 import { Comment } from './Comment.js';
 import { Reading } from './Reading.js';
 import { Chapter } from './Chapter.js';
+import { Rating } from './Rating.js';
 const schema =new  mongoose.Schema({
-    tentruyen:{
+    name:{
         type: String,
         require: true,
     },
-    tacgia:{
+    author:{
         type: String,
         require: true,
     },
-    theloai:{
+    type:{
         type: String,
         require: true,
     },
-    danhgia:{
+    rating:{
         type: Number,
         require: true,
         default:0
     },
-    luotdoc:{
+    reads:{
         type: Number,
         require: true,
         default:0
     },
-    hinhanh:{
+    image:{
         type: String,
         require: true,
     },
-    nguoidangtruyen:{
+    uploader:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     },
-    noidung:{
+    description:{
         type: String,
         require: true,
         default:"Mô tả truyện đọc",
@@ -44,12 +45,12 @@ const schema =new  mongoose.Schema({
             message:"Nội dung phải dài hơn 10 kí tự"
         }
     },
-    soluongdanhgia:{
+    numberofrating:{
         type: Number,
         require: true,
         default:0
     },
-    trangthai:{
+    state:{
         type: String,
         require: true,
         default:"Đang ra"
@@ -58,7 +59,7 @@ const schema =new  mongoose.Schema({
         type: String,
         require: true,
     },
-    sochap:{
+    numberofchapter:{
         type:Number,
         required:true,
         default:0
@@ -66,15 +67,16 @@ const schema =new  mongoose.Schema({
 },
 {timestamps:true}
 )
-schema.index({tentruyen:'text'})
+schema.index({name:'text'})
 schema.pre('deleteOne',{ query: true, document: false }, async function(next) {
     // 'this' is the client being removed. Provide callbacks here if you want
     // to be notified of the calls' result.
     let id=this.getQuery()['_id'];
     console.log(id)
-    await Comment.deleteMany({dautruyenId:id});
-    await Reading.deleteMany({dautruyenId:id});
-    await Chapter.deleteMany({dautruyenId:id});
+    await Comment.deleteMany({novelId:id});
+    await Reading.deleteMany({novelId:id});
+    await Chapter.deleteMany({novelId:id});
+    await Rating.deleteMany({novelId:id});
     next();
 });
 

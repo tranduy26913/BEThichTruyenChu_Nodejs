@@ -3,7 +3,7 @@ import { User } from "../models/User.js";
 import jwt from "jsonwebtoken";
 import { ResponseData, ResponseDetail } from "../services/ResponseJSON.js";
 import { Role } from "../models/Role.js";
-import { SendMail } from "../services/EmailService.js";
+import { sendMail } from "../services/EmailService.js";
 import mongoose from "mongoose";
 import generator from "generate-password"
 export const AuthController = {
@@ -15,7 +15,6 @@ export const AuthController = {
         )
         return accessToken
     },
-
     generateRefreshToken: (data) => {
         const accessToken = jwt.sign(
             data,
@@ -24,7 +23,6 @@ export const AuthController = {
         )
         return accessToken
     },
-
     RegisterUser: async (req, res) => {
         try {
             const roles = await Role.find({ name: "USER" });
@@ -36,13 +34,13 @@ export const AuthController = {
                 password: hash,
                 email: req.body.email,
                 roles: roles.map(item => item._id),
-                birthdate: new Date()
+                birthdate:new Date(),
+                balance: 0
             });
             let error = newUser.validateSync();
-            if (error)
-                return res.status(400).json(ResponseDetail(400, {
-                    message: error.errors['email']?.message || error.errors['username']?.message
-                }))
+            if(error)
+                return res.status(400).json(ResponseDetail(400, { 
+                    message: error.errors['email']?.message||error.errors['username']?.message }))
             let temp = (await User.findOne({ username: req.body.username }))
             if (temp) {
                 return res.status(400).json(ResponseDetail(400, { username: "Username đã tồn tại" }))
@@ -52,11 +50,11 @@ export const AuthController = {
                 return res.status(400).json(ResponseDetail(400, { username: "Email đã tồn tại" }))
             }
             const activeCode = jwt.sign(
-                { email: req.body.email },
+                { email:req.body.email },
                 process.env.JWT_ACCESS_KEY,
                 { expiresIn: "15m" }
             )
-            SendMail(req.body.email, "Kích hoạt tài khoản", process.env.CLIENT_URL + "active/" + activeCode)
+            sendMail(req.body.email , "Kích hoạt tài khoản", process.env.CLIENT_URL + "active/" + activeCode)
             const user = await newUser.save();
             return res.status(200).json(ResponseData(200, user))
 
@@ -75,6 +73,9 @@ export const AuthController = {
             if (!user) {
                 return res.status(404).json(ResponseDetail(400, { username: "Sai tên đăng nhập/mật khẩu" }))
             }
+            if(user.isDeleted){
+                return res.status(404).json(ResponseDetail(400, { username: "Sai tên đăng nhập/mật khẩu" }))
+            }
             const auth = await bcrypt.compare(req.body.password, user.password)
             if (auth) {
                 const data = {
@@ -83,7 +84,8 @@ export const AuthController = {
                 };
                 const accessToken = AuthController.generateAccessToken(data);
                 const refreshToken = AuthController.generateRefreshToken(data);
-                const { username, tenhienthi, image, roles } = user._doc;
+                const { username, nickname, image, roles,balance,_id,birthdate } = user._doc;
+
                 res.cookie("token", refreshToken, {
                     httpOnly: true,
                     secure: false,
@@ -91,12 +93,61 @@ export const AuthController = {
                 })
                 return res.status(200).json(ResponseData(200, {
                     username,
-                    tenhienthi,
+                    nickname,
+                    birthdate,
                     image,
                     accessToken,
                     refreshToken,
-                    roles: roles.map(item => item.name)
+                    id:_id,
+                    roles: roles.map(item => item.name),
+                    balance
                 }));
+            }
+            return res.status(404).json(ResponseDetail(400, { username: "Sai tên đăng nhập/mật khẩu" }))
+
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi đăng nhập" }))
+        }
+    },
+
+    LoginUserAdmin: async (req, res) => {
+        try {
+            console.log(req.body.username)
+            const user = await User.findOne({ username: req.body.username }).populate("roles");
+
+            if (!user) {
+                return res.status(404).json(ResponseDetail(400, { username: "Sai tên đăng nhập/mật khẩu" }))
+            }
+            const auth = await bcrypt.compare(req.body.password, user.password)
+            if (auth) {
+                const data = {
+                    sub: user.username,
+                    roles: user.roles.map(item => item.name)
+                };
+                const accessToken = AuthController.generateAccessToken(data);
+                const refreshToken = AuthController.generateRefreshToken(data);
+                const { username, nickname, image, roles,balance,_id,birthdate } = user._doc;
+
+                res.cookie("token", refreshToken, {
+                    httpOnly: true,
+                    secure: false,
+                    sameSite: "strict"
+                })
+                if(data.roles.length!=1&&(data.roles[0] == "ADMIN"||data.roles[1] == "ADMIN")){
+                    return res.status(200).json(ResponseData(200, {
+                        username,
+                        nickname,
+                        birthdate,
+                        image,
+                        accessToken,
+                        refreshToken,
+                        id:_id,
+                        roles: roles.map(item => item.name),
+                        balance
+                    }));
+                }
+                return res.status(404).json(ResponseDetail(400, { username: "Không có quyền truy cập" }))
             }
             return res.status(404).json(ResponseDetail(400, { username: "Sai tên đăng nhập/mật khẩu" }))
 
@@ -183,15 +234,15 @@ export const AuthController = {
                         { expiresIn: "15m" }
                     )
                     console.log("active:" + activeCode);
-                    try {
-                        const resultSendMail = await SendMail(email, "Kích hoạt tài khoản", process.env.CLIENT_URL + "active/" + activeCode)
-                        return res.status(200).json(ResponseData(200, { message: "Đã gửi mail kích hoạt" }))
-                        
-                    }
-                    catch (err) {
-                        console.log(err)
-                        return res.status(500).json(ResponseDetail(400, { message: "Lỗi gửi mail" }))
-                    }
+                    sendMail(email, "Kích hoạt tài khoản", process.env.CLIENT_URL + "active/" + activeCode)
+                        .then(response => {
+                            console.log(response)
+                            return res.status(200).json(ResponseData(200, { message: "Đã gửi mail kích hoạt" }))
+                        })
+                        .catch(err => {
+                            console.log(err)
+                            return res.status(500).json(ResponseDetail(400, { message: "Lỗi gửi mail" }))
+                        })
 
                 }
                 else {
@@ -199,10 +250,10 @@ export const AuthController = {
                 }
 
             } else {
-                return res.status(400).json(ResponseDetail(400, { message: "Thiếu email" }));
+                res.status(400).json(ResponseDetail(400, { message: "Thiếu email" }));
             }
         } catch (error) {
-            return res.status(500).json(ResponseDetail(400, { message: "Lỗi xác thực" }))
+            res.status(500).json(ResponseDetail(400, { message: "Lỗi xác thực" }))
         }
     }
     ,
@@ -218,9 +269,9 @@ export const AuthController = {
             if (email) {
                 const user = await User.findOne({ email: email })
                 if (user) {
-                    const newUser = await User.findOneAndUpdate({ email: email }, { password: hash }, { new: true })
-
-                    SendMail(email, "Mật khẩu mới", "Mật khẩu mới của tài khoản:" + password)
+                    const newUser = await User.findOneAndUpdate({email: email },{password:hash},{new:true})
+                    
+                    sendMail(email, "Mật khẩu mới", "Mật khẩu mới của tài khoản:"+password)
                         .then(response => {
                             console.log(response)
                             return res.status(200).json(ResponseData(200, { message: "Đã gửi mật khẩu mới" }))
@@ -288,28 +339,28 @@ export const AuthController = {
 
     checkUsername: async (req, res) => {
         try {
-            const username = req.query.username;
-            const user = await User.findOne({ username: username })
+            const username = req.body.username;
+            const user = await User.findOne({ username:username })
             if (user)
-                return res.status(200).json(ResponseData(200, { message: "Tên đăng nhập đã tồn tại trong hệ thống", valid: false }))
-            return res.status(200).json(ResponseData(200, { message: "Tên đăng nhập hợp lý", valid: true }))
+                return res.status(200).json(ResponseData(200, {message:"Tên đăng nhập đã tồn tại trong hệ thống",valid: false}))
+            return res.status(200).json(ResponseData(200, {message:"Tên đăng nhập hợp lý",valid: true}))
         }
         catch (error) {
             console.log(error)
-            return res.status(500).json(ResponseDetail(500, { message: "Lỗi", valid: false }))
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi",valid: false }))
         }
     },
     checkEmail: async (req, res) => {
         try {
-            const email = req.query.email;
-            const user = await User.findOne({ email: email })
+            const email = req.body.email;
+            const user = await User.findOne({ email:email })
             if (user)
-                return res.status(200).json(ResponseData(200, { message: "Email đã tồn tại trong hệ thống", valid: false }))
-            return res.status(200).json(ResponseData(200, { message: "Email hợp lý", valid: true }))
+                return res.status(200).json(ResponseData(200, {message:"Email đã tồn tại trong hệ thống",valid: false}))
+            return res.status(200).json(ResponseData(200, {message:"Email hợp lý",valid: true}))
         }
         catch (error) {
             console.log(error)
-            return res.status(500).json(ResponseDetail(500, { message: "Lỗi", valid: false }))
+            return res.status(500).json(ResponseDetail(500, { message: "Lỗi",valid: false }))
         }
     }
 

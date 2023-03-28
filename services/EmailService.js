@@ -44,7 +44,7 @@ export const createTransporter = async () => {
 
 }
 
-export const SendMail = async (to, subject, active) => {
+export const sendMail = async (to, subject, active) => {
     var emailOptions = { // thiết lập đối tượng, nội dung gửi mail
         from: 'Thích truyện chữ',
         to: to,

@@ -15,8 +15,8 @@ export const SavedController = {
                 const novel =await Novel.findOne({url:url})
                 if(novel){
                     const saved = await new Saved({
-                        user:user._id,
-                        novel:novel._id
+                        userId:user._id,
+                        novelId:novel._id
                     })
                     await saved.save()
                     return res.status(200).json(ResponseData(200,"Lưu thành công"))
@@ -42,8 +42,8 @@ export const SavedController = {
                 const novel =await Novel.findOne({url:url})
                 if(novel){
                     const saved =await Saved.findOne({
-                        user:user._id,
-                        novel:novel._id
+                        userId:user._id,
+                        novelId:novel._id
                     })
                     if(saved)
                         return res.status(200).json(ResponseData(200,{saved:true}))
@@ -67,14 +67,14 @@ export const SavedController = {
             const user = await User.findOne({ username: username })
 
             if(user){
-                var saveds = await Saved.find({user:user._id}).populate("novel")
+                var saveds = await Saved.find({userId:user._id}).populate("novelId")
                 console.log(saveds)
                 saveds = saveds.map(item=>{
                     return {
-                        tentruyen:item.novel.tentruyen,
-                        hinhanh:item.novel.hinhanh,
-                        url:item.novel.url,
-                        tacgia:item.novel.tacgia
+                        name:item.novelId.name,
+                        image:item.novelId.image,
+                        url:item.novelId.url,
+                        author:item.novelId.author
                             }
                 })
                 return res.status(200).json(ResponseData(200,saveds))
@@ -97,7 +97,7 @@ export const SavedController = {
             if(user){
                 const novel =await Novel.findOne({url:url})
                 if(novel){
-                    await Saved.deleteOne({user:user._id,novel:novel._id})
+                    await Saved.deleteOne({userId:user._id,novelId:novel._id})
                     return res.status(200).json(ResponseData(200,"Xoá thành công"))
                 }
                 else

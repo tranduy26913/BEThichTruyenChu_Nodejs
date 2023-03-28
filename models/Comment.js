@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
 const schema = new mongoose.Schema({
-    dautruyenId:{
+    novelId:{
         type:mongoose.Types.ObjectId,
         required:true,
         ref:"Novel"
@@ -18,4 +18,4 @@ const schema = new mongoose.Schema({
     
 },{timestamps:true})
 
-export const Comment = new mongoose.model("Comment",schema) 
+export const Comment = mongoose.model("Comment",schema) 

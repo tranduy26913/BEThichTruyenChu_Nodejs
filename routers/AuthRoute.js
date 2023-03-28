@@ -8,6 +8,8 @@ router.post('/auth/register', AuthController.RegisterUser);
 
 router.post('/auth/login', AuthController.LoginUser);
 
+router.post('/auth/loginadmin', AuthController.LoginUserAdmin)
+
 router.post('/auth/refreshtoken',AuthController.RefreshToken);
 
 router.post('/auth/reactive',AuthController.ReActive);
@@ -18,8 +20,8 @@ router.get('/auth/verifytoken',AuthController.verifyToken);
 
 router.post('/auth/forgetpassword',AuthController.Forgotpassword);
 
-router.get('/auth/checkusername',AuthController.checkUsername);
+router.post('/auth/checkusername',AuthController.checkUsername);
 
-router.get('/auth/checkemail',AuthController.checkEmail);
+router.post('/auth/checkemail',AuthController.checkEmail);
 
 export default router;

@@ -30,7 +30,7 @@ export const verifyTokenAdmin = (req, res, next) => {
             }
                 
             else
-                return req.status(403).json(ResponseDetail(403,{message:"Bạn không có quyền truy cập"}))
+                return res.status(403).json(ResponseDetail(403,{message:"Bạn không có quyền truy cập"}))
         })          
     } else {
         return res.status(401).json(ResponseDetail(401,{message:"Không có token"}));

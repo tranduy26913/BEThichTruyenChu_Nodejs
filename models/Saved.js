@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
 
 const scheme = new mongoose.Schema({
-    user:{
+    userId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required:true
     },
-    novel:{
+    novelId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Novel",
         required:true

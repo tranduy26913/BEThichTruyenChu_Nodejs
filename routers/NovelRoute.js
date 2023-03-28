@@ -36,4 +36,8 @@ router.delete('/novel',verifyToken,NovelController.DeleteNovelByUrl)
 
 router.get('/readingsdefault',NovelController.GetReadingsDefault)
 
+router.get('/updatechapters',NovelController.UpdateChapters)
+
+router.post('/chuong/unlock',verifyToken,NovelController.UnlockChapter)
+
 export default router;

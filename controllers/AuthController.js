@@ -55,7 +55,7 @@ export const AuthController = {
                 { expiresIn: "15m" }
             )
             sendMail(req.body.email , "Kích hoạt tài khoản", process.env.CLIENT_URL + "active/" + activeCode)
-            .then(response=>{
+            .then(async (response)=>{
                 const user = await newUser.save();
                 return res.status(200).json(ResponseData(200, user))
 

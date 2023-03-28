@@ -55,8 +55,14 @@ export const AuthController = {
                 { expiresIn: "15m" }
             )
             sendMail(req.body.email , "Kích hoạt tài khoản", process.env.CLIENT_URL + "active/" + activeCode)
-            const user = await newUser.save();
-            return res.status(200).json(ResponseData(200, user))
+            .then(response=>{
+                const user = await newUser.save();
+                return res.status(200).json(ResponseData(200, user))
+
+            })
+            .catch(err=>{
+                res.status(500).json(ResponseDetail(400, { username: "Tạo tài khoản không thành công" }))
+            })
 
         } catch (error) {
             console.log(error)

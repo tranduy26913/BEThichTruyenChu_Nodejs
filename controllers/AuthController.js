@@ -90,7 +90,7 @@ export const AuthController = {
                 };
                 const accessToken = AuthController.generateAccessToken(data);
                 const refreshToken = AuthController.generateRefreshToken(data);
-                const { username, nickname, image, roles,balance,_id,birthdate } = user._doc;
+                const { username, nickname, image, roles,balance,_id,birthdate,email } = user._doc;
 
                 res.cookie("token", refreshToken, {
                     httpOnly: true,
@@ -104,6 +104,7 @@ export const AuthController = {
                     image,
                     accessToken,
                     refreshToken,
+                    email,
                     id:_id,
                     roles: roles.map(item => item.name),
                     balance

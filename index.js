@@ -5,6 +5,8 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser'
 import {UserRoute,AuthRoute, NovelRoute, CommentRoute, AdminRoute,SavedRoute,PaymentRoute, StatisticRoute, RatingRoute, TrafficRoute} from './routers/index.js'
+import { Novel } from './models/Novel.js';
+import { Chapter } from './models/Chapter.js';
 
 dotenv.config()
 
@@ -15,7 +17,7 @@ const URI=process.env.MONGODB_URL;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true,limit:'50mb'}))
-app.use(cors({ credentials: true, origin:'https://thichtruyenchu.vercel.app'}));
+app.use(cors({ credentials: true, origin:true}));
 app.use(cookieParser());
 
 mongoose.connect(URI)
@@ -44,3 +46,5 @@ app.use('/api/payment',PaymentRoute)
 app.use('/api/statistic',StatisticRoute)
 app.use('/api/rating',RatingRoute)
 app.use('/api/traffic',TrafficRoute)
+
+Chapter.updateMany({},{isLock:false}).then(res=>console.log('done'))

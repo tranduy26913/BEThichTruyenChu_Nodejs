@@ -46,5 +46,3 @@ app.use('/api/payment',PaymentRoute)
 app.use('/api/statistic',StatisticRoute)
 app.use('/api/rating',RatingRoute)
 app.use('/api/traffic',TrafficRoute)
-
-Chapter.updateMany({},{isLock:false}).then(res=>console.log('done'))
